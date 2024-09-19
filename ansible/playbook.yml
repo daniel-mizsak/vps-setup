@@ -1,0 +1,22 @@
+---
+- name: Setup VPS.
+  hosts: all
+  become: true
+  gather_facts: true
+  vars_files:
+    - vars.yml
+
+  handlers:
+    - name: Restart sshd.
+      ansible.builtin.service:
+        name: ssh
+        state: restarted
+
+  tasks:
+    - name: Secure server.
+      ansible.builtin.import_tasks:
+        file: tasks/secure.yml
+
+    - name: Install packages.
+      ansible.builtin.import_tasks:
+        file: tasks/packages.yml

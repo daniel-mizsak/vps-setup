@@ -1,0 +1,17 @@
+---
+  name: CI
+  on:
+    pull_request:
+      branches:
+        - main
+    push:
+
+  jobs:
+    molecule:
+      uses: daniel-mizsak/workflows/.github/workflows/molecule.yml@main
+      with:
+        working-directory: ./ansible
+        molecule: false
+        yamllint: true
+        yamllint-config: .yamllint.yml
+        ansible-lint: true

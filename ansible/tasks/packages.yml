@@ -1,0 +1,61 @@
+---
+- name: Install system packages.
+  ansible.builtin.apt:
+    package:
+      - build-essential
+      - curl
+      - finger
+      - nmap
+      - python3-pip
+      - python3-virtualenv
+      - tmux
+      - tree
+      - zip
+    state: present
+
+# Install docker.
+# Documentation:
+#   - https://docs.docker.com/engine/install/ubuntu
+
+- name: Install docker dependencies.
+  ansible.builtin.apt:
+    package:
+      - ca-certificates
+      - curl
+      - gnupg
+    state: present
+
+- name: Add docker repository.
+  ansible.builtin.deb822_repository:
+    name: docker
+    types: [deb]
+    architectures: amd64
+    uris: "https://download.docker.com/linux/{{ ansible_distribution | lower }}"
+    signed_by: "https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg"
+    suites: ["{{ ansible_distribution_release | lower }}"]
+    components: [stable]
+    state: present
+    enabled: true
+
+- name: Install docker engine.
+  ansible.builtin.apt:
+    package:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    update_cache: true
+    state: present
+
+- name: Docker is running and enabled.
+  ansible.builtin.systemd_service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Add ansible user to docker group.
+  ansible.builtin.user:
+    name: "{{ user_name }}"
+    groups: docker
+    append: true

@@ -1,0 +1,15 @@
+# Project
+ansible/inventory.ini
+ansible/vars.yml
+
+# System
+.DS_Store
+
+# Environments
+.env
+.venv
+env/
+venv/
+
+# IDE
+.vscode/
