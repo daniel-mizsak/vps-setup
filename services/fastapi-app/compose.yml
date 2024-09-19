@@ -1,0 +1,8 @@
+---
+services:
+  fastapi-app:
+    container_name: fastapi-app
+    image: ghcr.io/daniel-mizsak/vps-setup
+    ports:
+      - "80:80"
+    restart: unless-stopped
