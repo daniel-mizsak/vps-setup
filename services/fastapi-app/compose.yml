@@ -2,15 +2,12 @@
 services:
   traefik:
     image: traefik:v3.1
-    command:
-      - "--api.insecure=true"
-      - "--providers.docker"
     ports:
       - "80:80"
       - "443:443"
       - "8080:8080"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock:ro
       - /etc/traefik/:/etc/traefik/
 
   fastapi-app:
