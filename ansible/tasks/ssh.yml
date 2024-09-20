@@ -1,0 +1,15 @@
+---
+- name: Set SSH configurations.
+  ansible.builtin.lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+    validate: "sshd -t -f %s"
+  loop:
+    - regexp: "^#?PermitRootLogin"
+      line: "PermitRootLogin no"
+
+    - regexp: "^#?PasswordAuthentication"
+      line: "PasswordAuthentication no"
+  notify: Restart sshd.

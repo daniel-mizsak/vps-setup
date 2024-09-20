@@ -13,10 +13,27 @@
         state: restarted
 
   tasks:
-    - name: Secure server.
+    - name: Run initial ansible setup (as root).
       ansible.builtin.import_tasks:
-        file: tasks/secure.yml
+        file: tasks/initial.yml
+      when: false
+
+    - name: Apply ssh settings.
+      ansible.builtin.import_tasks:
+        file: tasks/ssh.yml
+
+    - name: Apply ufw settings.
+      ansible.builtin.import_tasks:
+        file: tasks/ufw.yml
 
     - name: Install packages.
       ansible.builtin.import_tasks:
         file: tasks/packages.yml
+
+    - name: Install docker.
+      ansible.builtin.import_tasks:
+        file: tasks/docker.yml
+
+    - name: Setup traefik.
+      ansible.builtin.import_tasks:
+        file: tasks/traefik.yml

@@ -27,4 +27,4 @@ jobs:
         with:
           context: services/fastapi-app/
           push: true
-          tags: ghcr.io/daniel-mizsak/vps-setup:latest
+          tags: ghcr.io/daniel-mizsak/fastapi-app:latest
