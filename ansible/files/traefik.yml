@@ -4,8 +4,8 @@ global:
   sendAnonymousUsage: false
 
 api:
-  dashboard: true
-  insecure: true
+  dashboard: false
+  insecure: false
 
 entryPoints:
   web:
