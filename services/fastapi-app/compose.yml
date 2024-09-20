@@ -3,21 +3,23 @@ services:
   traefik:
     image: traefik:v3.1
     command:
+      - "--api.insecure=true"
       - "--providers.docker"
     ports:
       - "80:80"
       - "443:443"
+      - "8080:8080"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/run/docker.sock:/var/run/docker.sock
       - /etc/traefik/:/etc/traefik/
 
   fastapi-app:
     image: ghcr.io/daniel-mizsak/fastapi-app:latest
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.app.rule=Host(`mlops.top`)"
-      - "traefik.http.routers.app.entrypoints=websecure"
-      - "traefik.http.routers.app.tls.certresolver=production"
+      - "traefik.http.routers.fastapi-app.rule=Host(`mlops.top`)"
+      - "traefik.http.routers.fastapi-app.entrypoints=websecure"
+      - "traefik.http.routers.fastapi-app.tls.certresolver=staging"
     deploy:
       mode: replicated
       replicas: 3

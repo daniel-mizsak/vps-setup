@@ -14,4 +14,5 @@ RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 # Run command
-CMD ["fastapi", "run", "fastapi_app/main.py", "--port", "80"]
+EXPOSE 8081
+CMD ["fastapi", "run", "fastapi_app/main.py", "--port", "8081"]
