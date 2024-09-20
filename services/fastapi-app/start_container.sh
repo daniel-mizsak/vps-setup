@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker compose --file ./compose.yml up --detach fastapi-app
+docker compose --file ./compose.yml up --detach
