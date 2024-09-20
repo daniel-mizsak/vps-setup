@@ -12,8 +12,7 @@ services:
       - /etc/traefik/:/etc/traefik/
 
   fastapi-app:
-    container_name: fastapi-app
-    image: ghcr.io/daniel-mizsak/fastapi-app
+    image: ghcr.io/daniel-mizsak/fastapi-app:latest
     labels:
       - "traefik.enabled=true"
       - "traefik.http.routers.app.rule=Host(`mlops.top`)"
