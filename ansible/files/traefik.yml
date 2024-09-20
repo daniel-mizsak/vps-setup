@@ -19,7 +19,7 @@ entryPoints:
     address: :443
 
 certificatesResolvers:
-  staging:
+  production:
     acme:
       email: info@pythonvilag.hu
       storage: /etc/traefik/certs/acme.json

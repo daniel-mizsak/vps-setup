@@ -15,7 +15,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.fastapi-app.rule=Host(`mlops.top`)"
       - "traefik.http.routers.fastapi-app.entrypoints=websecure"
-      - "traefik.http.routers.fastapi-app.tls.certresolver=staging"
+      - "traefik.http.routers.fastapi-app.tls.certresolver=production"
     deploy:
       mode: replicated
       replicas: 3
