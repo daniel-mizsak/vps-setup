@@ -13,3 +13,10 @@
     owner: root
     group: root
     mode: "0644"
+
+- name: Create traefik certificate directory.
+  ansible.builtin.file:
+    path: /etc/traefik/certs
+    owner: root
+    mode: "0755"
+    state: directory
