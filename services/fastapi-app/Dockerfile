@@ -1,5 +1,5 @@
 # Set basic image data
-FROM python:3.12
+FROM python:3.12-slim
 LABEL org.opencontainers.image.source="https://github.com/daniel-mizsak/vps-setup"
 
 ENV LANG=C.UTF-8

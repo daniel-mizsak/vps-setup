@@ -6,7 +6,6 @@ on:
       - 'v*'
   workflow_dispatch:
 
-
 jobs:
   ghcr:
     runs-on: ubuntu-latest
