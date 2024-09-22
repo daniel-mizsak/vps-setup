@@ -1,5 +1,14 @@
 ---
 services:
+  watchtower:
+    image: containrrr/watchtower
+    command:
+      - "--label-enable"
+      - "--interval"
+      - "30"
+      - "--rolling-restart"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
   traefik:
     image: traefik:v3.1
     ports:
@@ -16,6 +25,7 @@ services:
       - "traefik.http.routers.fastapi-app.rule=Host(`mlops.top`)"
       - "traefik.http.routers.fastapi-app.entrypoints=websecure"
       - "traefik.http.routers.fastapi-app.tls.certresolver=production"
+      - "com.centurylinklabs.watchtower.enable=true"
     deploy:
       mode: replicated
       replicas: 3
