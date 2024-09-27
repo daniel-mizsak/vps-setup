@@ -16,24 +16,24 @@
     - name: Run initial ansible setup (as root).
       ansible.builtin.import_tasks:
         file: tasks/initial.yml
-      when: false
-
-    - name: Apply ssh settings.
-      ansible.builtin.import_tasks:
-        file: tasks/ssh.yml
-
-    - name: Apply ufw settings.
-      ansible.builtin.import_tasks:
-        file: tasks/ufw.yml
+      when: initial_setup
 
     - name: Install packages.
       ansible.builtin.import_tasks:
         file: tasks/packages.yml
+      when: not initial_setup
 
     - name: Install docker.
       ansible.builtin.import_tasks:
         file: tasks/docker.yml
+      when: not initial_setup
 
     - name: Setup traefik.
       ansible.builtin.import_tasks:
         file: tasks/traefik.yml
+      when: not initial_setup
+
+    - name: Setup app.
+      ansible.builtin.import_tasks:
+        file: tasks/fastapi_app.yml
+      when: setup_app

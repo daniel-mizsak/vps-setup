@@ -1,4 +1,5 @@
 ---
+# User.
 - name: Create system user group.
   ansible.builtin.group:
     name: "{{ user_name }}"
@@ -14,6 +15,15 @@
     createhome: true
     state: present
 
+- name: Add sudo privileges for user.
+  ansible.builtin.lineinfile:
+    dest: /etc/sudoers
+    regexp: "^{{ user_name }}"
+    line: "{{ user_name }} ALL=(ALL) NOPASSWD:ALL"
+    state: present
+    validate: "visudo -cf %s"
+
+# SSH.
 - name: Create SSH directory.
   ansible.builtin.file:
     path: "/home/{{ user_name }}/.ssh"
@@ -31,10 +41,41 @@
     group: "{{ user_name }}"
     mode: "0600"
 
-- name: Add sudo privileges for user.
+- name: Set SSH configurations.
   ansible.builtin.lineinfile:
-    dest: /etc/sudoers
-    regexp: "^{{ user_name }}"
-    line: "{{ user_name }} ALL=(ALL) NOPASSWD:ALL"
+    dest: /etc/ssh/sshd_config
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
     state: present
-    validate: "visudo -cf %s"
+    validate: "sshd -t -f %s"
+  loop:
+    - regexp: "^#?PermitRootLogin"
+      line: "PermitRootLogin no"
+
+    - regexp: "^#?PasswordAuthentication"
+      line: "PasswordAuthentication no"
+  notify: Restart sshd.
+
+# UFW.
+- name: Deny incoming traffic.
+  community.general.ufw:
+    default: deny
+    direction: incoming
+
+- name: Allow outgoing traffic.
+  community.general.ufw:
+    default: allow
+    direction: outgoing
+
+- name: Allow specific ports.
+  community.general.ufw:
+    rule: allow
+    port: "{{ item }}"
+  loop:
+    - 22
+    - 80
+    - 443
+
+- name: Enable UFW.
+  community.general.ufw:
+    state: enabled
