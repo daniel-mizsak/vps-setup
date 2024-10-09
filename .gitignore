@@ -1,6 +1,5 @@
 # Project
 ansible/inventory.ini
-ansible/vars.yml
 
 # System
 .DS_Store

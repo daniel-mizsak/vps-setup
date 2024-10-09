@@ -1,0 +1,117 @@
+---
+- name: VPS setup
+  hosts: all
+  become: true
+  gather_facts: true
+  remote_user: root
+  vars:
+    user_name: ansible
+
+  handlers:
+    - name: Restart sshd
+      ansible.builtin.service:
+        name: ssh
+        state: restarted
+
+  tasks:
+    # User.
+    - name: Create system user group
+      ansible.builtin.group:
+        name: "{{ user_name }}"
+        state: present
+
+    - name: Create system user
+      ansible.builtin.user:
+        name: "{{ user_name }}"
+        password: $6$gFBVpKxMq5h.eOGu$oLpalFL21hvgnVpZlTR3V0CwltWRtcmfgscwYpFshYrrBFipuGgZQ6Ij7lwzcBdKgUmAN2J9Q11TgxSyX0M/c/
+        shell: /bin/bash
+        groups:
+          - sudo
+          - "{{ user_name }}"
+        createhome: true
+        state: present
+
+    - name: Add sudo privileges for user
+      ansible.builtin.lineinfile:
+        dest: /etc/sudoers
+        regexp: "^{{ user_name }}"
+        line: "{{ user_name }} ALL=(ALL) NOPASSWD:ALL"
+        state: present
+        validate: "visudo -cf %s"
+
+    # SSH.
+    - name: Create SSH directory
+      ansible.builtin.file:
+        path: "/home/{{ user_name }}/.ssh"
+        state: directory
+        owner: "{{ user_name }}"
+        group: "{{ user_name }}"
+        mode: "0700"
+
+    - name: Add authorized key for user
+      ansible.builtin.copy:
+        remote_src: true
+        src: /root/.ssh/authorized_keys
+        dest: /home/{{ user_name }}/.ssh/authorized_keys
+        owner: "{{ user_name }}"
+        group: "{{ user_name }}"
+        mode: "0600"
+
+    - name: Set SSH configurations
+      ansible.builtin.lineinfile:
+        dest: /etc/ssh/sshd_config
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        state: present
+        validate: "sshd -t -f %s"
+      loop:
+        - regexp: "^#?PermitRootLogin"
+          line: "PermitRootLogin no"
+
+        - regexp: "^#?PasswordAuthentication"
+          line: "PasswordAuthentication no"
+      notify: Restart sshd
+
+    # UFW.
+    - name: Deny incoming traffic
+      community.general.ufw:
+        default: deny
+        direction: incoming
+
+    - name: Allow outgoing traffic
+      community.general.ufw:
+        default: allow
+        direction: outgoing
+
+    - name: Allow specific ports
+      community.general.ufw:
+        rule: allow
+        port: "{{ item }}"
+      loop:
+        - 22
+        - 80
+        - 443
+
+    - name: Enable UFW
+      community.general.ufw:
+        state: enabled
+
+    # APT
+    - name: Install system packages  # noqa package-latest
+      ansible.builtin.apt:
+        package:
+          - build-essential
+          - curl
+          - finger
+          - nmap
+          - python3-kubernetes
+          - python3-pip
+          - python3-virtualenv
+          - tmux
+          - tree
+          - zip
+        state: latest
+
+    - name: Update system packages to the latest version
+      ansible.builtin.apt:
+        upgrade: safe

@@ -1,5 +1,5 @@
 """
-Short description and source of base code.
+Simple FastAPI application.
 
 @author "Daniel Mizsak" <info@pythonvilag.hu>
 """

@@ -1,0 +1,106 @@
+---
+- name: App setup
+  hosts: all
+  become: true
+  gather_facts: true
+  remote_user: ansible
+  vars:
+    user_name: ansible
+
+  tasks:
+    # Docker
+    - name: Install docker dependencies
+      ansible.builtin.apt:
+        package:
+          - ca-certificates
+          - curl
+          - gnupg
+        state: present
+
+    - name: Add docker repository
+      ansible.builtin.deb822_repository:
+        name: docker
+        types: [deb]
+        architectures: amd64
+        uris: "https://download.docker.com/linux/{{ ansible_distribution | lower }}"
+        signed_by: "https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg"
+        suites: ["{{ ansible_distribution_release | lower }}"]
+        components: [stable]
+        state: present
+        enabled: true
+
+    - name: Install docker engine  # noqa package-latest
+      ansible.builtin.apt:
+        package:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        update_cache: true
+        state: latest
+
+    - name: Docker is running and enabled
+      ansible.builtin.systemd_service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Add ansible user to docker group
+      ansible.builtin.user:
+        name: "{{ user_name }}"
+        groups: docker
+        append: true
+
+    # Traefik
+    - name: Create traefik directory
+      ansible.builtin.file:
+        path: /etc/traefik
+        owner: root
+        group: root
+        mode: "0755"
+        state: directory
+
+    - name: Copy global traefik configurations
+      ansible.builtin.copy:
+        src: files/docker/traefik.yml
+        dest: /etc/traefik/traefik.yml
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Create traefik certificate directory
+      ansible.builtin.file:
+        path: /etc/traefik/certs
+        owner: root
+        group: root
+        mode: "0755"
+        state: directory
+
+    # FastAPI
+    - name: Create fastapi-app directory
+      ansible.builtin.file:
+        path: /fastapi-app
+        owner: root
+        group: root
+        mode: "0755"
+        state: directory
+
+    - name: Copy fastapi-app compose
+      ansible.builtin.copy:
+        src: files/docker/compose.yml
+        dest: /fastapi-app/compose.yml
+        owner: root
+        group: root
+        mode: "0644"
+      register: fastapi_app_compose
+
+    - name: Check if the fastapi-app container is running
+      community.docker.docker_container_info:
+        name: fastapi-app
+      register: fastapi_app_container
+
+    - name: Start fastapi-app container
+      community.docker.docker_compose_v2:
+        project_src: /fastapi-app
+        state: "{{ 'restarted' if (fastapi_app_container.exists and fastapi_app_compose.changed) else 'present' }}"

@@ -13,19 +13,19 @@ jobs:
       packages: write
 
     steps:
-      - name: Check out the codebase.
+      - name: Check out the codebase
         uses: actions/checkout@v4
 
-      - name: Login to ghcr.
+      - name: Login to ghcr
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push image.
+      - name: Build and push image
         uses: docker/build-push-action@v6
         with:
-          context: services/fastapi-app/
+          context: fastapi-app/
           push: true
           tags: ghcr.io/daniel-mizsak/fastapi-app:latest
