@@ -1,0 +1,69 @@
+---
+- name: FastAPI app setup with k3s
+  hosts: all
+  become: true
+  gather_facts: true
+  remote_user: ansible
+
+  tasks:
+    # K3S
+    - name: Create k3s directory
+      ansible.builtin.file:
+        path: /etc/rancher/k3s
+        owner: root
+        group: root
+        mode: "0755"
+        state: directory
+
+    - name: Copy k3s config
+      ansible.builtin.copy:
+        src: files/k3s/config.yaml
+        dest: /etc/rancher/k3s/config.yaml
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Downlaod k3s installer
+      ansible.builtin.get_url:
+        url: https://get.k3s.io
+        dest: /tmp/k3s-install.sh
+        mode: "0755"
+
+    - name: Install k3s
+      ansible.builtin.command: >
+        /tmp/k3s-install.sh --config /etc/rancher/k3s/config.yaml
+      args:
+        creates: /usr/local/bin/k3s
+
+    # Traefik
+    - name: Copy traefik extra helm config
+      ansible.builtin.copy:
+        src: files/k3s/traefik-config.yaml
+        dest: /var/lib/rancher/k3s/server/manifests/traefik-config.yaml
+        owner: root
+        group: root
+        mode: "0644"
+
+    # FastAPI
+    - name: Create fastapi-app directory
+      ansible.builtin.file:
+        path: /fastapi-app
+        owner: root
+        group: root
+        mode: "0755"
+        state: directory
+
+    - name: Copy fastapi-app deployment
+      ansible.builtin.copy:
+        src: files/k3s/deployment.yaml
+        dest: /fastapi-app/deployment.yaml
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Apply fastapi-app deployment
+      kubernetes.core.k8s:
+        state: present
+        src: /fastapi-app/deployment.yaml
+        kubeconfig: /etc/rancher/k3s/k3s.yaml
+        namespace: default

@@ -1,0 +1,6 @@
+---
+# https://docs.k3s.io/installation/configuration#configuration-file
+
+write-kubeconfig-mode: "0644"
+tls-san:
+  - "mlops.top"
