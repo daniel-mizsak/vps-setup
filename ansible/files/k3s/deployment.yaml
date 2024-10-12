@@ -31,6 +31,7 @@ spec:
       containers:
         - name: fastapi-container
           image: ghcr.io/daniel-mizsak/fastapi-app:latest
+          imagePullPolicy: Always
 
 ---
 apiVersion: networking.k8s.io/v1

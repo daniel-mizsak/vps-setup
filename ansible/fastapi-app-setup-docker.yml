@@ -1,8 +1,7 @@
 ---
-- name: App setup
+- name: FastAPI app setup with docker
   hosts: all
   become: true
-  gather_facts: true
   remote_user: ansible
   vars:
     user_name: ansible

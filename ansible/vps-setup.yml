@@ -6,6 +6,7 @@
   remote_user: root
   vars:
     user_name: ansible
+    user_password: $6$gFBVpKxMq5h.eOGu$oLpalFL21hvgnVpZlTR3V0CwltWRtcmfgscwYpFshYrrBFipuGgZQ6Ij7lwzcBdKgUmAN2J9Q11TgxSyX0M/c/
 
   handlers:
     - name: Restart sshd
@@ -14,7 +15,7 @@
         state: restarted
 
   tasks:
-    # User.
+    # User
     - name: Create system user group
       ansible.builtin.group:
         name: "{{ user_name }}"
@@ -23,7 +24,7 @@
     - name: Create system user
       ansible.builtin.user:
         name: "{{ user_name }}"
-        password: $6$gFBVpKxMq5h.eOGu$oLpalFL21hvgnVpZlTR3V0CwltWRtcmfgscwYpFshYrrBFipuGgZQ6Ij7lwzcBdKgUmAN2J9Q11TgxSyX0M/c/
+        password: "{{ user_password }}"
         shell: /bin/bash
         groups:
           - sudo
@@ -39,7 +40,7 @@
         state: present
         validate: "visudo -cf %s"
 
-    # SSH.
+    # SSH
     - name: Create SSH directory
       ansible.builtin.file:
         path: "/home/{{ user_name }}/.ssh"
@@ -72,7 +73,7 @@
           line: "PasswordAuthentication no"
       notify: Restart sshd
 
-    # UFW.
+    # UFW
     - name: Deny incoming traffic
       community.general.ufw:
         default: deny

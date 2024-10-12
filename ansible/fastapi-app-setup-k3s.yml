@@ -2,7 +2,6 @@
 - name: FastAPI app setup with k3s
   hosts: all
   become: true
-  gather_facts: true
   remote_user: ansible
 
   tasks:
