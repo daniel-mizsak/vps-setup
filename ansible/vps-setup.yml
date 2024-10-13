@@ -8,6 +8,12 @@
     user_name: ansible
     user_password: $6$gFBVpKxMq5h.eOGu$oLpalFL21hvgnVpZlTR3V0CwltWRtcmfgscwYpFshYrrBFipuGgZQ6Ij7lwzcBdKgUmAN2J9Q11TgxSyX0M/c/
 
+  pre_tasks:
+    - name: Update apt package cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
   handlers:
     - name: Restart sshd
       ansible.builtin.service:
@@ -98,11 +104,12 @@
         state: enabled
 
     # APT
-    - name: Install system packages  # noqa package-latest
+    - name: Install system packages
       ansible.builtin.apt:
         package:
           - build-essential
           - curl
+          - fail2ban
           - finger
           - nmap
           - python3-kubernetes
@@ -111,7 +118,13 @@
           - tmux
           - tree
           - zip
-        state: latest
+        state: present
+
+    - name: Enable fail2ban
+      ansible.builtin.service:
+        name: fail2ban
+        state: started
+        enabled: true
 
     - name: Update system packages to the latest version
       ansible.builtin.apt:
