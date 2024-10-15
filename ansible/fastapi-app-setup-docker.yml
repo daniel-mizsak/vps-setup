@@ -54,25 +54,25 @@
     # Traefik
     - name: Create traefik directory
       ansible.builtin.file:
-        path: /etc/traefik
-        owner: root
-        group: root
+        path: /traefik
+        owner: "{{ user_name }}"
+        group: "{{ user_name }}"
         mode: "0755"
         state: directory
 
     - name: Copy global traefik configurations
       ansible.builtin.copy:
-        src: files/docker/traefik.yml
-        dest: /etc/traefik/traefik.yml
-        owner: root
-        group: root
+        src: files/traefik/traefik.yml
+        dest: /traefik/traefik.yml
+        owner: "{{ user_name }}"
+        group: "{{ user_name }}"
         mode: "0644"
 
     - name: Create traefik certificate directory
       ansible.builtin.file:
-        path: /etc/traefik/certs
-        owner: root
-        group: root
+        path: /traefik/certs
+        owner: "{{ user_name }}"
+        group: "{{ user_name }}"
         mode: "0755"
         state: directory
 
@@ -80,8 +80,8 @@
     - name: Create fastapi-app directory
       ansible.builtin.file:
         path: /fastapi-app
-        owner: root
-        group: root
+        owner: "{{ user_name }}"
+        group: "{{ user_name }}"
         mode: "0755"
         state: directory
 
@@ -89,8 +89,8 @@
       ansible.builtin.copy:
         src: files/docker/compose.yml
         dest: /fastapi-app/compose.yml
-        owner: root
-        group: root
+        owner: "{{ user_name }}"
+        group: "{{ user_name }}"
         mode: "0644"
       register: fastapi_app_compose
 

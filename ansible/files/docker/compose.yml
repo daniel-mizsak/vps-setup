@@ -1,7 +1,7 @@
 ---
 services:
   watchtower:
-    image: containrrr/watchtower
+    image: docker.io/containrrr/watchtower
     command:
       - "--label-enable"
       - "--interval"
@@ -10,13 +10,13 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
   traefik:
-    image: traefik:v3.1
+    image: docker.io/library/traefik:v3.1
     ports:
       - "80:80"
       - "443:443"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /etc/traefik/:/etc/traefik/
+      - /traefik/:/etc/traefik/
 
   fastapi-app:
     image: ghcr.io/daniel-mizsak/fastapi-app:latest
