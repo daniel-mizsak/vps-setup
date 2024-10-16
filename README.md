@@ -7,10 +7,13 @@
 </div>
 
 ## Overview
-This repository was heavily inspired by [Dreams of Codes](https://www.youtube.com/@dreamsofcode)'s [Setting up a production ready VPS](https://youtu.be/F-9KWQByeU0?si=v7OE4IBhpqrzaD1R) video.
+The deployed web application **should** be available at [mlops.top](https://mlops.top).
 
-The idea was to automate the whole process using `ansible`, while making some minor improvements to the original setup.\
-I also created a solution where the deployment is done using a `k3s` kubernetes cluster. Both methods should implement roughly the same features.
+This repository was heavily inspired by [Dreams of Codes](https://www.youtube.com/@dreamsofcode)'s [Setting up a production ready VPS](https://youtu.be/F-9KWQByeU0?si=v7OE4IBhpqrzaD1R) video.\
+The idea was to automate the whole dockerized deployment process using `ansible`, while making minor improvements to the original setup.
+
+A solution where the deployment is done using a `k3s` kubernetes cluster was also added. Both methods implement the same features.
+A [third solution](https://github.com/daniel-mizsak/vps-setup/tree/feature/app-setup-podman) using `podman` is also in the making, but it is not working sufficiently yet.
 
 ## VPS Setup
 After cloning the repository create a python virtual environment and install the requirements:
@@ -23,21 +26,41 @@ cd ansible
 pip install --requirement requirements.txt
 ```
 
-Rename the inventory file and add your VPS's IP address to it:
+Rename the example inventory file and replace the placeholder with your VPS's IP address.
 ```bash
 mv example.inventory.ini inventory.ini
 ```
 
-The `vps-setup` playbook assumes that your public SSH key is already added to the root user's `authorized_keys`. Make sure that this is the case.\
-Next, set the hashed password in the `vps-setup.yml` file. [Ansible's guide on generating hashed password](https://docs.ansible.com/ansible/latest/reference_appendices/faq.html#how-do-i-generate-encrypted-passwords-for-the-user-module).
+The `vps-setup` playbook assumes that your public SSH key is already added to the root user's `~/.ssh/authorized_keys` file. Make sure that this is the case.\
+Next, set the hashed password under `vars` in the `vps-setup.yml` file. [Ansible's guide on generating hashed password](https://docs.ansible.com/ansible/latest/reference_appendices/faq.html#how-do-i-generate-encrypted-passwords-for-the-user-module).
 
 The `vps-setup` playbook can be run with the following command:
 ```bash
-ansible-playbook vps-setup.yml --inventory inventory.ini
+ansible-playbook vps-setup.yml
 ```
 
-It is recommended to reboot the machine after the playbook has finished running.
+It is recommended to reboot the machine after the playbook has finished running.\
+(Since I often do slight modifications/experiments on the VPS, I usually also [setup my terminal](https://github.com/daniel-mizsak/macos-setup/blob/main/docs/ubuntu-terminal-setup.md) for a more comfortable experience. This is completely optional.)
+
+List of changes made to the original vps setup:
+- Did not disable `UsePAM` in `/etc/ssh/sshd_config` as I am not exactly sure when it is needed
+- Did not modify the `/etc/ssh/sshd_config.d/50-cloud-init.conf` file as it should be overwritten by the other file in the directory
+- Added some additional apt packages, most importantly `fail2ban` with the default configuration
 
 ## Docker setup
+Since the requirements are identical to `vps-setup`, the application setup using `docker` can be run by:
+```bash
+ansible-playbook fastapi-app-setup-docker.yml
+```
+
+List of my changes:
+- Use `python` webapp instead of `go`. This can easily be modified in the `compose.yml` file under `files/docker` in the repository. The database was also dropped.
+- Moved the general `traefik` configurations into a separate file resulting in a cleaner `compose.yml` file
 
 ## K3S setup
+Run the `k3s-setup` playbook with the following command:
+```bash
+ansible-playbook fastapi-app-setup-k3s.yml
+```
+
+Unfortunately, I found no trivial solution on making the cluster automatically pull down the latest image from the registry, like how `watchtower` does.

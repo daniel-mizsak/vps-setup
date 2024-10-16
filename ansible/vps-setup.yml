@@ -110,7 +110,6 @@
           - build-essential
           - curl
           - fail2ban
-          - finger
           - nmap
           - python3-kubernetes
           - python3-pip
