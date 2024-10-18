@@ -19,7 +19,7 @@
           - podman-compose
         state: present
 
-    - name: Allow privileged ports for {{ user_name }}
+    - name: Allow privileged ports for non-root users
       ansible.posix.sysctl:
         name: net.ipv4.ip_unprivileged_port_start
         value: 80
@@ -32,14 +32,13 @@
       args:
         creates: /var/lib/systemd/linger/{{ user_name }}
 
-    # TODO: This might not be working properly
     - name: Enable podman socket
       ansible.builtin.systemd_service:
         name: podman.socket
         state: started
         enabled: true
-      become: true
-      become_user: "{{ user_name }}"
+        scope: user
+      become: false
 
     # Traefik
     - name: Create traefik directory
@@ -84,12 +83,28 @@
         mode: "0644"
       register: fastapi_app_compose
 
-    # TODO: Try using built-in ansible module
+    - name: Check if the fastapi-app container is running
+      containers.podman.podman_container_info:
+        name: fastapi-app
+      register: fastapi_app_container
+
+    - name: Debug fastapi-app container status
+      ansible.builtin.debug:
+        var: fastapi_app_container
+
+    - name: Restart fastapi-app container
+      ansible.builtin.command: >
+        podman-compose -f /fastapi-app/compose.yml restart
+      when: fastapi_app_compose.changed and not fastapi_app_container.stderr
+      changed_when: true
+      become: false
+
     - name: Start fastapi-app container
       ansible.builtin.command: >
         podman-compose -f /fastapi-app/compose.yml up -d
-      become: true
-      become_user: "{{ user_name }}"
+      when: fastapi_app_container.stderr
+      changed_when: true
+      become: false
 
 # TODO: Watchtower is not working:
 # https://github.com/containrrr/watchtower/issues/1060
