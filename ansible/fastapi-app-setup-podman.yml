@@ -1,0 +1,95 @@
+---
+# https://gerov.eu/posts/traefik-for-podman/
+# https://blog.cthudson.com/2023-11-02-running-traefik-with-podman/
+# https://www.redhat.com/sysadmin/ansible-podman-container-deployment
+
+- name: FastAPI app setup with podman
+  hosts: all
+  become: true
+  remote_user: ansible
+  vars:
+    user_name: ansible
+
+  tasks:
+    # Podman
+    - name: Install podman
+      ansible.builtin.apt:
+        package:
+          - podman
+          - podman-compose
+        state: present
+
+    - name: Allow privileged ports for non-root users
+      ansible.posix.sysctl:
+        name: net.ipv4.ip_unprivileged_port_start
+        value: 80
+        sysctl_set: true
+        reload: true
+
+    - name: Ensure lingering is enabled
+      ansible.builtin.command: >
+        loginctl enable-linger {{ user_name }}
+      args:
+        creates: /var/lib/systemd/linger/{{ user_name }}
+
+    - name: Enable podman socket
+      ansible.builtin.systemd_service:
+        name: podman.socket
+        state: started
+        enabled: true
+        scope: user
+      become: false
+
+    # Traefik
+    - name: Create traefik directory
+      ansible.builtin.file:
+        path: /traefik
+        owner: "{{ user_name }}"
+        group: "{{ user_name }}"
+        mode: "0755"
+        state: directory
+
+    - name: Copy global traefik configurations
+      ansible.builtin.copy:
+        src: files/traefik/traefik.yml
+        dest: /traefik/traefik.yml
+        owner: "{{ user_name }}"
+        group: "{{ user_name }}"
+        mode: "0644"
+
+    - name: Create traefik certificate directory
+      ansible.builtin.file:
+        path: /traefik/certs
+        owner: "{{ user_name }}"
+        group: "{{ user_name }}"
+        mode: "0755"
+        state: directory
+
+    # FastAPI
+    - name: Create fastapi-app directory
+      ansible.builtin.file:
+        path: /fastapi-app
+        owner: "{{ user_name }}"
+        group: "{{ user_name }}"
+        mode: "0755"
+        state: directory
+
+    - name: Copy fastapi-app compose
+      ansible.builtin.copy:
+        src: files/podman/compose.yml
+        dest: /fastapi-app/compose.yml
+        owner: "{{ user_name }}"
+        group: "{{ user_name }}"
+        mode: "0644"
+      register: fastapi_app_compose
+
+    # TODO: Add compose restart policy if the compose file changed
+    - name: Start fastapi-app container
+      ansible.builtin.command: >
+        podman-compose -f /fastapi-app/compose.yml up -d
+      when: true
+      changed_when: fastapi_app_compose.changed
+      become: false
+
+# TODO: Watchtower is not working:
+# https://github.com/containrrr/watchtower/issues/1060
