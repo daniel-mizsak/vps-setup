@@ -12,8 +12,7 @@ The deployed web application **should** be available at [mlops.top](https://mlop
 This repository was heavily inspired by [Dreams of Codes](https://www.youtube.com/@dreamsofcode)'s [Setting up a production ready VPS](https://youtu.be/F-9KWQByeU0?si=v7OE4IBhpqrzaD1R) video.\
 The idea was to automate the whole dockerized deployment process using `ansible`, while making minor improvements to the original setup.
 
-A solution where the deployment is done using a `k3s` kubernetes cluster was also added. Both methods implement the same features.
-A [third solution](https://github.com/daniel-mizsak/vps-setup/tree/feature/app-setup-podman) using `podman` is also in the making, but it is not working sufficiently yet.
+Additional solutions where the deployment is done using `k3s` and `podman` were also created. All methods implement the same features.
 
 ## VPS Setup
 After cloning the repository create a python virtual environment and install the requirements:
@@ -64,3 +63,16 @@ ansible-playbook fastapi-app-setup-k3s.yml
 ```
 
 Unfortunately, I found no trivial solution on making the cluster automatically pull down the latest image from the registry, like how `watchtower` does.
+
+Also, pay attention to the default `ufw` settings applied during the `vps-setup`, as it might block so features of `k3s`.
+
+
+## Podman setup
+The main advantage of using `podman` instead of `docker`, is that by default it is considered more secure.\
+Run the `podman-setup` playbook with the following command:
+```bash
+ansible-playbook fastapi-app-setup-podman.yml
+```
+
+Unfortunately, similarly to `k3s`, the automated deployment process is not working.\
+It is a limitation of `podman`, but [should be fixed](https://github.com/containrrr/watchtower/issues/1060) in the future.
